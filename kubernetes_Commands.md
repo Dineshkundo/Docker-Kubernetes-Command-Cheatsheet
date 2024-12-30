@@ -1,3 +1,165 @@
+
+# Kubernetes for Docker Users
+
+This guide helps Docker users to transition smoothly to Kubernetes by using `kubectl` commands, which are similar to Docker commands. Below are common Docker commands with their equivalent `kubectl` commands.
+
+## Docker `run` vs `kubectl create deployment`
+
+### Docker
+```bash
+docker run -d --restart=always -e DOMAIN=cluster --name nginx-app -p 80:80 nginx
+```
+
+### `kubectl`
+```bash
+# Start the pod running nginx
+kubectl create deployment --image=nginx nginx-app
+deployment.apps/nginx-app created
+
+# Add environment variable to nginx-app
+kubectl set env deployment/nginx-app DOMAIN=cluster
+deployment.apps/nginx-app env updated
+
+# Expose port through a service
+kubectl expose deployment nginx-app --port=80 --name=nginx-http
+service "nginx-http" exposed
+```
+**Note:** `kubectl` commands will print the type and name of the resource created or mutated, which can then be used in subsequent commands.
+
+## Docker `ps` vs `kubectl get`
+
+### Docker
+```bash
+docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS                     PORTS                NAMES
+14636241935f        ubuntu:16.04        "echo test"              5 seconds ago        Exited (0) 5 seconds ago                        cocky_fermi
+55c103fa1296        nginx               "nginx -g 'daemon of…"   About a minute ago   Up About a minute          0.0.0.0:80->80/tcp   nginx-app
+```
+
+### `kubectl`
+```bash
+kubectl get po
+NAME                        READY     STATUS      RESTARTS   AGE
+nginx-app-8df569cb7-4gd89   1/1       Running     0          3m
+ubuntu                      0/1       Completed   0          20s
+```
+
+## Docker `attach` vs `kubectl attach`
+
+### Docker
+```bash
+docker attach 55c103fa1296
+```
+
+### `kubectl`
+```bash
+kubectl attach -it nginx-app-5jyvm
+```
+**Note:** To detach from the container, use the escape sequence `Ctrl+P` followed by `Ctrl+Q`.
+
+## Docker `exec` vs `kubectl exec`
+
+### Docker
+```bash
+docker exec 55c103fa1296 cat /etc/hostname
+nginx-app-5jyvm
+```
+
+### `kubectl`
+```bash
+kubectl exec nginx-app-5jyvm -- cat /etc/hostname
+nginx-app-5jyvm
+
+# Use interactive commands
+kubectl exec -ti nginx-app-5jyvm -- /bin/sh
+# exit
+```
+
+## Docker `logs` vs `kubectl logs`
+
+### Docker
+```bash
+docker logs -f a9e
+192.168.9.1 - - [14/Jul/2015:01:04:02 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.35.0" "-"
+```
+
+### `kubectl`
+```bash
+kubectl logs -f nginx-app-zibvs
+10.240.63.110 - - [14/Jul/2015:01:09:01 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.26.0" "-"
+```
+
+### Previous logs
+```bash
+kubectl logs --previous nginx-app-zibvs
+10.240.63.110 - - [14/Jul/2015:01:09:01 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.26.0" "-"
+```
+
+## Docker `stop` and `rm` vs `kubectl delete`
+
+### Docker
+```bash
+docker stop a9ec34d98787
+docker rm a9ec34d98787
+```
+
+### `kubectl`
+```bash
+kubectl get deployment nginx-app
+kubectl get po -l app=nginx-app
+kubectl delete deployment nginx-app
+deployment "nginx-app" deleted
+kubectl get po -l app=nginx-app
+```
+**Note:** When using `kubectl`, you delete the deployment, which deletes the associated pod.
+
+## Docker `login` vs Kubernetes private registry
+
+There is no direct `docker login` analog in `kubectl`. However, if you're using Kubernetes with a private registry, see [Using a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/) for more details.
+
+## Docker `version` vs `kubectl version`
+
+### Docker
+```bash
+docker version
+Client version: 1.7.0
+Client API version: 1.19
+Server version: 1.7.0
+Server API version: 1.19
+```
+
+### `kubectl`
+```bash
+kubectl version
+Client Version: version.Info{Major:"1", Minor:"6", GitVersion:"v1.6.9+a3d1dfa6f4335", GitCommit:"9b77fed11a9843ce3780f70dd251e92901c43072", GitTreeState:"dirty", BuildDate:"2017-08-29T20:32:58Z", OpenPaasKubernetesVersion:"v1.03.02", GoVersion:"go1.7.5", Compiler:"gc", Platform:"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"6", GitVersion:"v1.6.9+a3d1dfa6f4335", GitCommit:"9b77fed11a9843ce3780f70dd251e92901c43072", GitTreeState:"dirty", BuildDate:"2017-08-29T20:32:58Z", OpenPaasKubernetesVersion:"v1.03.02", GoVersion:"go1.7.5", Compiler:"gc", Platform:"linux/amd64"}
+```
+
+## Docker `info` vs `kubectl cluster-info`
+
+### Docker
+```bash
+docker info
+Containers: 40
+Images: 168
+Storage Driver: aufs
+Kernel Version: 3.13.0-53-generic
+Operating System: Ubuntu 14.04.2 LTS
+CPUs: 12
+Total Memory: 31.32 GiB
+```
+
+### `kubectl`
+```bash
+kubectl cluster-info
+Kubernetes master is running at https://203.0.113.141
+KubeDNS is running at https://203.0.113.141/api/v1/namespaces/kube-system/services/kube-dns/proxy
+```
+
+---
+
+This comparison will help you transition from Docker to Kubernetes while managing your containers and services.
+
 # Comprehensive Kubernetes `kubectl` Commands
 
 ## **Cluster Information**
